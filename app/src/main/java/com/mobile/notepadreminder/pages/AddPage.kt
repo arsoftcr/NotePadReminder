@@ -74,10 +74,6 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
     val minutes= remember {
         mutableStateOf(calendar.get(Calendar.MINUTE))
     }
-
-    val iscompleted = remember {
-        mutableStateOf(false)
-    }
     val context = LocalContext.current
     Column(
         modifier = Modifier
@@ -121,6 +117,7 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
                     vm.task.value.description = description.value
                     vm.task.value.date = "${day.value}/${month.value}/${year.value}"
                     vm.task.value.time = calendar.timeInMillis
+                    vm.task.value.dateCreated= getDateToday()
 
                     vm.createTask(context, vm.task.value)
                     Log.e("tmepickerreceived","date and time  :${year.value}/${month.value}/${day.value} : ${hour.value}:${minutes.value}")

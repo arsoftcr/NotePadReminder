@@ -1,13 +1,14 @@
 package com.mobile.notepadreminder.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.mobile.notepadreminder.pages.AddPage
-import com.mobile.notepadreminder.pages.ListPage
-import com.mobile.notepadreminder.pages.MainPage
+import com.mobile.notepadreminder.pages.*
 
+@RequiresApi(Build.VERSION_CODES.M)
 @Composable
 fun SetupNavGraph(navController: NavHostController) {
     NavHost(navController = navController,
@@ -22,34 +23,18 @@ fun SetupNavGraph(navController: NavHostController) {
         composable(route= Screen.lis.route){
             ListPage(navController)
         }
-        /*composable(route= Screen.home.route){
-            HomePage(windowSize = windowSize,navController)
+        composable(route= Screen.completed.route){
+            CompleteTaskPage(navController)
         }
-        composable(route= Screen.menu.route, arguments = listOf(navArgument("id"){
-            type= NavType.LongType
-        })){
-            MenuPage(windowSize = windowSize,navController,it.arguments!!.getLong("id"))
+        composable(route= Screen.encurso.route){
+            EnCursoTaskPage(navController)
         }
-        composable(route= Screen.categories.route, arguments = listOf(navArgument("menu"){
-            type= NavType.LongType
-        })){
-            CategoryPage(windowSize = windowSize,navController,it.arguments!!.getLong("menu"))
+        composable(route= Screen.deHoy.route){
+            DeHoyPage(navController)
         }
-        composable(route= Screen.subcategories.route, arguments = listOf(navArgument("menu"){
-            type= NavType.LongType
-        }, navArgument("category"){
-            type= NavType.LongType
-        })){
-            SubCategoryPage(windowSize = windowSize,navController,
-                it.arguments!!.getLong("menu"),it.arguments!!.getLong("category"))
+        composable(route= Screen.total.route){
+            TotalPage(navController)
         }
-        composable(route= Screen.components.route, arguments = listOf(navArgument("menu"){
-            type= NavType.LongType
-        }, navArgument("subcategory"){
-            type= NavType.LongType
-        })){
-            ComponentPage(windowSize = windowSize,navController,
-                it.arguments!!.getLong("menu"),it.arguments!!.getLong("subcategory"))
-        }*/
+
     }
 }
