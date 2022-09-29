@@ -1,0 +1,126 @@
+package com.mobile.notepadreminder.pages
+
+
+import android.content.Context
+import android.util.Log
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement.Absolute.Center
+import androidx.compose.foundation.layout.Arrangement.Center
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.HorizontalAlignmentLine
+import androidx.compose.ui.layout.VerticalAlignmentLine
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.airbnb.lottie.compose.*
+import  com.mobile.notepadreminder.R
+import com.mobile.notepadreminder.data.Task
+import com.mobile.notepadreminder.data.TaskDatabase
+import com.mobile.notepadreminder.navigation.Screen
+import com.mobile.notepadreminder.ui.theme.NoteTheme
+import com.mobile.notepadreminder.viewmodels.TaskViewModel
+import kotlinx.coroutines.launch
+import java.util.Date
+import java.util.UUID
+
+@Composable
+fun MainPage(navController: NavController, vm:TaskViewModel= viewModel()){
+
+    val context= LocalContext.current
+
+    val scope= rememberCoroutineScope()
+    LaunchedEffect(key1 = "main" ){
+        scope.launch {
+            vm.loadTask(context = context)
+        }
+    }
+
+    if (vm.goto.value){
+        vm.goto.value=false
+        navController.navigate(Screen.lis.route)
+    }
+
+        Scaffold(
+            topBar = {
+
+            },
+            floatingActionButton = {
+
+                FloatingActionButton(
+                    onClick = {
+                        navController.navigate(Screen.add.route)
+                    },
+                    backgroundColor = Color.Blue,
+                    contentColor = Color.Blue,
+                    elevation = FloatingActionButtonDefaults.elevation(12.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = "plus",
+                        tint = Color.White
+                    )
+                }
+            }
+
+        ){
+            Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .padding(2.dp), verticalAlignment = Alignment.CenterVertically) {
+                    val composition by rememberLottieComposition(
+                        LottieCompositionSpec
+                            .RawRes(R.raw.task)
+                    )
+
+                    var isLottiePlaying by remember {
+                        mutableStateOf(true)
+                    }
+                    var animationSpeed by remember {
+                        mutableStateOf(1f)
+                    }
+
+                    // to control the lottie animation
+                    val lottieAnimation by animateLottieCompositionAsState(
+                        // pass the composition created above
+                        composition,
+                        // Iterates Forever
+                        iterations = LottieConstants.IterateForever,
+                        // Lottie and pause/play
+                        isPlaying = isLottiePlaying,
+                        // Increasing the speed of change Lottie
+                        speed = animationSpeed,
+                        restartOnPlay = false
+                    )
+
+                    LottieAnimation(composition = composition,lottieAnimation)
+                }
+
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(text = "No hay tareas todavía", textAlign = TextAlign.Center, style = NoteTheme.typography.h1)
+                        Text(text = "Por favor agregue una tarea",textAlign = TextAlign.Center,style = NoteTheme.typography.body)
+                        Button(onClick = {
+                            navController.navigate(Screen.add.route)
+//                            Log.d("but","dem")
+//                            val task= Task(0,"title",UUID.randomUUID().toString(),"${Date().date}",System.currentTimeMillis(),false)
+//                            vm.createTask(context,task)
+                        }, colors = ButtonDefaults.buttonColors(backgroundColor = Color.Blue)) {
+                            Text(text = "Agregar Tarea", color = Color.White, style = NoteTheme.typography.subtitle)
+                        }
+                    }
+                }
+            }
+        }
+}
