@@ -1,6 +1,9 @@
 package com.mobile.notepadreminder.pages
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -24,10 +27,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.mobile.notepadreminder.AlarmReceiver
 import com.mobile.notepadreminder.data.Task
 import com.mobile.notepadreminder.ui.theme.NoteTheme
 import com.mobile.notepadreminder.ui.theme.taskText
 import com.mobile.notepadreminder.viewmodels.TaskViewModel
+import java.util.Calendar
 
 @Composable
 fun TotalPage(navController: NavController, vm: TaskViewModel = viewModel()) {
@@ -68,6 +73,12 @@ fun CardTotal(task: Task, vm: TaskViewModel, context: Context) {
             .fillMaxWidth()
             .height(80.dp)
     ) {
+        val showPopup= remember {
+            mutableStateOf(false)
+        }
+        val msg= remember {
+            mutableStateOf("")
+        }
         val state = remember {
             mutableStateOf(task.iscompleted==1)
         }
@@ -91,14 +102,22 @@ fun CardTotal(task: Task, vm: TaskViewModel, context: Context) {
                 )
             }
 
+            val cal=Calendar.getInstance().apply {
+                timeInMillis= task.time
+            }
             Row(
                 modifier=Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
+                val AMPM =if(cal.get(Calendar.AM_PM)==Calendar.AM){
+                            "AM"
+                        } else {
+                            "PM"
+                        }
                 Text(
                     modifier = Modifier.padding(start = 24.dp),
-                    text = task.date,
+                    text = "${task.date} : ${cal.get(Calendar.HOUR_OF_DAY)}: ${cal.get(Calendar.MINUTE)} $AMPM",
                     maxLines = 1,
                     color = taskText,
                     style = NoteTheme.typography.h1,
@@ -106,7 +125,18 @@ fun CardTotal(task: Task, vm: TaskViewModel, context: Context) {
                 )
                 IconButton(modifier = Modifier.padding(), onClick = {
                     vm.deleteTask(context,task.id)
+                    val alarmMgr= context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+                    val intent= Intent(context, AlarmReceiver::class.java)
+                    intent.action="alarma"
+                    intent.putExtra("ALARMA_ID_STRING","${task.shuff}")
+                    intent.putExtra("ALARMA_DESCRIPTION_STRING","${task.description}")
+                    val pending=
+                        PendingIntent.getBroadcast(context,task.shuff,intent, PendingIntent.FLAG_IMMUTABLE)
+                    alarmMgr.cancel(pending)
                     vm.loadTask(context)
+                    showPopup.value=true
+                    msg.value="Recordatorio desactivado"
                 }) {
                     Icon(
                         Icons.Filled.DeleteForever,
@@ -117,5 +147,12 @@ fun CardTotal(task: Task, vm: TaskViewModel, context: Context) {
                 }
             }
         }
+        if (showPopup.value){
+            PopupMessagePage(msg.value,400.dp,500.dp,showPopup.value,{
+                showPopup.value=false
+            },
+                Icons.Filled.DeleteForever)
+        }
     }
 }
+

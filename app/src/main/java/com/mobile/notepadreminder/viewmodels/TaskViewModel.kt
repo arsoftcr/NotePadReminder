@@ -23,7 +23,7 @@ class TaskViewModel(): ViewModel() {
     val enCursoCount= mutableStateOf(0)
     val goto= mutableStateOf(false)
 
-    var task= mutableStateOf(Task(0,"","","","",0,0))
+    var task= mutableStateOf(Task(0,"","","","",0,0, shuff = 0))
 
     private  fun clean(){
         list.value= mutableListOf()
@@ -156,7 +156,6 @@ class TaskViewModel(): ViewModel() {
         viewModelScope.launch {
             try{
                 TaskDatabase.getDatabase(context).taskDao().insert(task)
-                Toast.makeText(context,"Tarea creada correctamente",Toast.LENGTH_LONG).show()
             }catch (err:Throwable){
                 Log.d("ERROR:loadPeriods",err.message.toString())
             }
@@ -164,6 +163,6 @@ class TaskViewModel(): ViewModel() {
     }
 
     fun resetTask(){
-        task= mutableStateOf(Task(0,"","","","",0,0))
+        task= mutableStateOf(Task(0,"","","","",0,0, shuff = 0))
     }
 }

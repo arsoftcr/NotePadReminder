@@ -12,5 +12,6 @@ data class Task(
     var date:String,
     var dateCreated:String,
     var time:Long,
-    var iscompleted:Int
+    var iscompleted:Int,
+    var shuff:Int
 )

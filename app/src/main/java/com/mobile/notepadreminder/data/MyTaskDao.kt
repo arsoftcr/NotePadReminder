@@ -12,16 +12,16 @@ interface MyTaskDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(task:Task)
 
-    @Query("select id,title,description,date,dateCreated,time,iscompleted from Task")
+    @Query("select id,title,description,date,dateCreated,time,iscompleted,shuff from Task")
     suspend fun select():List<Task>
 
-    @Query("select id,title,description,date,dateCreated,time,iscompleted from Task where iscompleted=1")
+    @Query("select id,title,description,date,dateCreated,time,iscompleted,shuff from Task where iscompleted=1")
     suspend fun completadas():List<Task>
 
-    @Query("select id,title,description,date,dateCreated,time,iscompleted from Task where iscompleted=0")
+    @Query("select id,title,description,date,dateCreated,time,iscompleted,shuff from Task where iscompleted=0")
     suspend fun encurso():List<Task>
 
-    @Query("select id,title,description,date,dateCreated,time,iscompleted from Task where dateCreated=:date")
+    @Query("select id,title,description,date,dateCreated,time,iscompleted,shuff from Task where dateCreated=:date")
     suspend fun dehoy(date:String):List<Task>
 
     @Query("update Task set iscompleted=:completed where id=:pid")
@@ -38,4 +38,7 @@ interface MyTaskDao {
 
     @Query("delete from Task where id=:pid")
     suspend fun deleteTask(pid:Int)
+
+    @Query("delete from Task where shuff=:pid")
+     fun deleteAfterAlarm(pid:Int)
 }

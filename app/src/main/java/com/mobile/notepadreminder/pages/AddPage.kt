@@ -18,11 +18,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -74,6 +78,23 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
     val minutes= remember {
         mutableStateOf(calendar.get(Calendar.MINUTE))
     }
+    val showPopup= remember {
+        mutableStateOf(false)
+    }
+    val msg= remember {
+        mutableStateOf("")
+    }
+    val icon= remember {
+        mutableStateOf(Icons.Filled.Done)
+    }
+
+    if (showPopup.value){
+
+        PopupMessagePage(msg.value,400.dp,500.dp,showPopup.value,{
+                                                                                            showPopup.value=false
+        },
+            icon.value)
+    }
     val context = LocalContext.current
     Column(
         modifier = Modifier
@@ -99,8 +120,9 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
             onClick = {
                 if (title.value.isNullOrBlank() || description.value.isNullOrBlank()
                 ) {
-                    Toast.makeText(context, "Por favor ingrese todos los datos", Toast.LENGTH_LONG)
-                        .show()
+                    msg.value="Por favor ingrese todos los datos"
+                    icon.value=Icons.Filled.Warning
+                    showPopup.value=true
                     return@Button
                 }
                 scope.launch {
@@ -113,19 +135,19 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
                         set(Calendar.MINUTE,minutes.value)
                     }
 
+                    val shuff=(1..99999).shuffled().first()
                     vm.task.value.title = title.value
                     vm.task.value.description = description.value
                     vm.task.value.date = "${day.value}/${month.value}/${year.value}"
                     vm.task.value.time = calendar.timeInMillis
                     vm.task.value.dateCreated= getDateToday()
+                    vm.task.value.shuff= shuff
 
                     vm.createTask(context, vm.task.value)
                     Log.e("tmepickerreceived","date and time  :${year.value}/${month.value}/${day.value} : ${hour.value}:${minutes.value}")
 
 
                     val alarmMgr= context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
-                    val shuff=(1..99999).shuffled().first()
 
                     val intent= Intent(context,AlarmReceiver::class.java)
                     intent.action="alarma"
@@ -143,7 +165,9 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
                             "day: ${calendar.get(Calendar.DAY_OF_MONTH)}")
 
                     alarmMgr?.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,calendar.timeInMillis,pending)
-                    Toast.makeText(context, "Tarea creada correctamente", Toast.LENGTH_LONG).show()
+                    msg.value="Recordatorio activado"
+                    icon.value=Icons.Filled.Done
+                    showPopup.value=true
                     vm.resetTask()
                 }
 
