@@ -35,4 +35,7 @@ interface MyTaskDao {
 
     @Query("select Count(*) from Task where dateCreated=:date")
     suspend fun conteoDeHoy(date:String):Int
+
+    @Query("delete from Task where id=:pid")
+    suspend fun deleteTask(pid:Int)
 }

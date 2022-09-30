@@ -7,6 +7,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.materialIcon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -89,17 +92,29 @@ fun CardTotal(task: Task, vm: TaskViewModel, context: Context) {
             }
 
             Row(
+                modifier=Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Text(
-                    modifier = Modifier.padding(start = 24.dp, end = 24.dp),
+                    modifier = Modifier.padding(start = 24.dp),
                     text = task.date,
                     maxLines = 1,
                     color = taskText,
                     style = NoteTheme.typography.h1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
+                IconButton(modifier = Modifier.padding(), onClick = {
+                    vm.deleteTask(context,task.id)
+                    vm.loadTask(context)
+                }) {
+                    Icon(
+                        Icons.Filled.DeleteForever,
+                        contentDescription = "Remove",
+                        tint= Color(0xFFff4757),
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
             }
         }
     }

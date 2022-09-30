@@ -12,5 +12,5 @@ data class Task(
     var date:String,
     var dateCreated:String,
     var time:Long,
-    val iscompleted:Int
+    var iscompleted:Int
 )

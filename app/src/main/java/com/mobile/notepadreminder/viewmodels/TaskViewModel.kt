@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 
 class TaskViewModel(): ViewModel() {
 
-     val tasks:List<Task> = listOf()
+     val tasks:List<Task> = mutableListOf()
      var list= mutableStateOf(tasks)
     val completas= mutableStateOf(0)
     val total= mutableStateOf(0)
@@ -25,9 +25,13 @@ class TaskViewModel(): ViewModel() {
 
     var task= mutableStateOf(Task(0,"","","","",0,0))
 
+    private  fun clean(){
+        list.value= mutableListOf()
+    }
      fun loadTask(context: Context){
         viewModelScope.launch {
             try{
+                clean()
                 list.value= withContext(Dispatchers.IO){
                     TaskDatabase.getDatabase(context).taskDao().select()
                 }
@@ -45,10 +49,11 @@ class TaskViewModel(): ViewModel() {
     fun loadencurso(context: Context){
         viewModelScope.launch {
             try{
+                clean()
                 list.value= withContext(Dispatchers.IO){
                     TaskDatabase.getDatabase(context).taskDao().encurso()
                 }
-                Log.d("loadencurso()","tasks cargados correctamente ${list.value.count()}")
+                Log.d("loadencurso()","loadencurso ${list.value.count()}")
             }catch (err:java.lang.Exception){
                 Log.d("ERROR:loadencurso",err.toString())
             }
@@ -58,10 +63,11 @@ class TaskViewModel(): ViewModel() {
     fun loadcomplete(context: Context){
         viewModelScope.launch {
             try{
+                clean()
                 list.value= withContext(Dispatchers.IO){
                     TaskDatabase.getDatabase(context).taskDao().completadas()
                 }
-                Log.d("loadcomplete()","tasks cargados correctamente ${list.value.count()}")
+                Log.d("loadcomplete()","loadcomplete ${list.value.count()}")
             }catch (err:java.lang.Exception){
                 Log.d("ERROR:loadcomplete",err.toString())
             }
@@ -110,6 +116,7 @@ class TaskViewModel(): ViewModel() {
     fun loaddehoy(context: Context,date:String){
         viewModelScope.launch {
             try{
+                clean()
                 list.value= withContext(Dispatchers.IO){
                     TaskDatabase.getDatabase(context).taskDao().dehoy(date)
                 }
@@ -125,9 +132,21 @@ class TaskViewModel(): ViewModel() {
             try{
                 TaskDatabase.getDatabase(context).taskDao().updateTask(id,completed)
 
-                Log.d("loadTask()","tasks cargados correctamente ${list.value.count()}")
+                Log.d("updateTask()","updateTask id $id completed : $completed")
             }catch (err:java.lang.Exception){
-                Log.d("ERROR:loadTask",err.toString())
+                Log.d("ERROR:updateTask",err.toString())
+            }
+        }
+    }
+
+    fun deleteTask(context: Context,id:Int){
+        viewModelScope.launch {
+            try{
+                TaskDatabase.getDatabase(context).taskDao().deleteTask(id)
+
+                Log.d("deleteTask()","deleteTask id $id")
+            }catch (err:java.lang.Exception){
+                Log.d("ERROR:deleteTask",err.toString())
             }
         }
     }
