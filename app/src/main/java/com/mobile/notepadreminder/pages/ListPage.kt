@@ -24,6 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.airbnb.lottie.compose.*
 import com.mobile.notepadreminder.R
 import com.mobile.notepadreminder.navigation.Screen
@@ -66,7 +68,7 @@ fun ListPage(navController: NavController,vm:TaskViewModel= viewModel()){
     ){
         Column(modifier = Modifier
             .fillMaxSize()
-            //.verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState())
             .padding(10.dp),
             verticalArrangement = Arrangement.Center) {
             Text(modifier = Modifier.padding(start = 10.dp),
@@ -138,4 +140,11 @@ fun getDateToday(): String {
     val day= Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
 
     return "${day}/${month}/${year}"
+}
+
+@Composable
+@Preview
+fun PreviewListPage(){
+    val nav:NavHostController= rememberNavController()
+    ListPage(navController =nav )
 }

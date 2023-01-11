@@ -148,7 +148,7 @@ fun CardTotal(task: Task, vm: TaskViewModel, context: Context) {
             }
         }
         if (showPopup.value){
-            PopupMessagePage(msg.value,400.dp,500.dp,showPopup.value,{
+            PopupMessagePage(msg.value,400.dp,500.dp,showPopup,{
                 showPopup.value=false
             },
                 Icons.Filled.DeleteForever)

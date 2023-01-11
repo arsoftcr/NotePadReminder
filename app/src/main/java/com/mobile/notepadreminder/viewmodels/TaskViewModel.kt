@@ -3,6 +3,8 @@ package com.mobile.notepadreminder.viewmodels
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
@@ -12,8 +14,35 @@ import com.mobile.notepadreminder.data.TaskDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.*
 
 class TaskViewModel(): ViewModel() {
+
+    val calendar= Calendar.getInstance().apply {
+        timeInMillis=System.currentTimeMillis()
+    }
+    val title = mutableStateOf("")
+
+    val description =  mutableStateOf("")
+
+    val year= mutableStateOf(calendar.get(Calendar.YEAR))
+
+    val month= mutableStateOf(calendar.get(Calendar.MONTH))
+
+    val day= mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH))
+
+    val hour=  mutableStateOf(calendar.get(Calendar.HOUR_OF_DAY))
+
+    val minutes= mutableStateOf(calendar.get(Calendar.MINUTE))
+
+    val showPopup= mutableStateOf(false)
+
+    val msg=  mutableStateOf("")
+
+    val icon=mutableStateOf(Icons.Filled.Done)
+
+    val gotoList= mutableStateOf(false)
+
 
      val tasks:List<Task> = mutableListOf()
      var list= mutableStateOf(tasks)
@@ -25,6 +54,9 @@ class TaskViewModel(): ViewModel() {
 
     var task= mutableStateOf(Task(0,"","","","",0,0, shuff = 0))
 
+    init {
+        gotoList.value = false
+    }
     private  fun clean(){
         list.value= mutableListOf()
     }
@@ -164,5 +196,6 @@ class TaskViewModel(): ViewModel() {
 
     fun resetTask(){
         task= mutableStateOf(Task(0,"","","","",0,0, shuff = 0))
+        gotoList.value = true
     }
 }

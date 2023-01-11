@@ -51,7 +51,11 @@ fun MainPage(navController: NavController, vm: TaskViewModel = viewModel()) {
 
     if (vm.goto.value) {
         vm.goto.value = false
-        navController.navigate(Screen.lis.route)
+        navController.navigate(Screen.lis.route){
+            popUpTo(Screen.lis.route){
+                inclusive=true
+            }
+        }
     }
 
     Scaffold(

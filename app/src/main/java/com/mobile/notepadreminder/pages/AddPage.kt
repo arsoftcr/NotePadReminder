@@ -9,18 +9,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
-import android.widget.DatePicker
-import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,14 +29,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.mobile.notepadreminder.AlarmReceiver
-import com.mobile.notepadreminder.data.Task
+import com.mobile.notepadreminder.navigation.Screen
 import com.mobile.notepadreminder.ui.theme.NoteTheme
 import com.mobile.notepadreminder.viewmodels.TaskViewModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -49,53 +44,15 @@ import java.util.*
 @Composable
 fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
     val scope= rememberCoroutineScope()
-    val calendar=Calendar.getInstance().apply {
-        timeInMillis=System.currentTimeMillis()
-    }
-
-    val title = remember {
-        mutableStateOf("")
-    }
-    val description = remember {
-        mutableStateOf("")
-    }
-    val year= remember {
-        mutableStateOf(calendar.get(Calendar.YEAR))
-    }
-
-    val month= remember {
-        mutableStateOf(calendar.get(Calendar.MONTH)+1)
-    }
-
-    val day= remember {
-        mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH))
-    }
-
-    val hour= remember {
-        mutableStateOf(calendar.get(Calendar.HOUR_OF_DAY))
-    }
-
-    val minutes= remember {
-        mutableStateOf(calendar.get(Calendar.MINUTE))
-    }
-    val showPopup= remember {
-        mutableStateOf(false)
-    }
-    val msg= remember {
-        mutableStateOf("")
-    }
-    val icon= remember {
-        mutableStateOf(Icons.Filled.Done)
-    }
-
-    if (showPopup.value){
-
-        PopupMessagePage(msg.value,400.dp,500.dp,showPopup.value,{
-                                                                                            showPopup.value=false
-        },
-            icon.value)
-    }
     val context = LocalContext.current
+
+    if (vm.showPopup.value){
+
+        PopupMessagePage(vm.msg.value,400.dp,500.dp,vm.showPopup,{
+            vm.showPopup.value=false
+        },vm.icon.value)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -104,47 +61,52 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
     ) {
         Text(
             text = "Agregar Tarea",
-            style = NoteTheme.typography.h1
+            style = NoteTheme.typography.h1,
+            fontSize = 34.sp, color = Color(0XFF3867d6)
         )
 
-        RowOfThis(title, "Título", true)
-        RowOfThis(description, "Descripción", false)
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            DatePick(context = context, year = year, month = month, day = day)
+        Divider(modifier=Modifier
+            .padding( start = 7.dp, end = 7.dp).height(1.dp))
+
+        RowOfThis(vm.title, "Título", true,Icons.Filled.Title)
+        RowOfThis(vm.description, "Descripción", false,Icons.Filled.Description)
+        Row(modifier = Modifier.padding(top=24.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            DatePick(context = context, year = vm.year, month = vm.month, day = vm.day)
         }
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            TimePick(context = context, hours = hour, minutes = minutes)
+            TimePick(context = context, hours =vm.hour, minutes = vm.minutes)
         }
 
-        Button(
+        Button(modifier=Modifier
+            .padding(top=40.dp, start = 8.dp, end = 8.dp).fillMaxWidth(),
             onClick = {
-                if (title.value.isNullOrBlank() || description.value.isNullOrBlank()
+                if (vm.title.value.isNullOrBlank() || vm.description.value.isNullOrBlank()
                 ) {
-                    msg.value="Por favor ingrese todos los datos"
-                    icon.value=Icons.Filled.Warning
-                    showPopup.value=true
+                    vm.msg.value="Por favor ingrese todos los datos"
+                    vm.icon.value=Icons.Filled.Warning
+                    vm.showPopup.value=true
                     return@Button
                 }
                 scope.launch {
 
-                    calendar.apply {
-                        set(Calendar.YEAR,year.value)
-                        set(Calendar.MONTH,(month.value-1))
-                        set(Calendar.DAY_OF_MONTH,day.value)
-                        set(Calendar.HOUR_OF_DAY,hour.value)
-                        set(Calendar.MINUTE,minutes.value)
+                    vm.calendar.apply {
+                        set(Calendar.YEAR,vm.year.value)
+                        set(Calendar.MONTH,(vm.month.value-1))
+                        set(Calendar.DAY_OF_MONTH,vm.day.value)
+                        set(Calendar.HOUR_OF_DAY,vm.hour.value)
+                        set(Calendar.MINUTE,vm.minutes.value)
                     }
 
                     val shuff=(1..99999).shuffled().first()
-                    vm.task.value.title = title.value
-                    vm.task.value.description = description.value
-                    vm.task.value.date = "${day.value}/${month.value}/${year.value}"
-                    vm.task.value.time = calendar.timeInMillis
+                    vm.task.value.title = vm.title.value
+                    vm.task.value.description = vm.description.value
+                    vm.task.value.date = "${vm.day.value}/${vm.month.value}/${vm.year.value}"
+                    vm.task.value.time = vm.calendar.timeInMillis
                     vm.task.value.dateCreated= getDateToday()
                     vm.task.value.shuff= shuff
 
                     vm.createTask(context, vm.task.value)
-                    Log.e("tmepickerreceived","date and time  :${year.value}/${month.value}/${day.value} : ${hour.value}:${minutes.value}")
+                    Log.e("tmepickerreceived","date and time  :${vm.year.value}/${vm.month.value}/${vm.day.value} : ${vm.hour.value}:${vm.minutes.value}")
 
 
                     val alarmMgr= context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -152,29 +114,46 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
                     val intent= Intent(context,AlarmReceiver::class.java)
                     intent.action="alarma"
                     intent.putExtra("ALARMA_ID_STRING","$shuff")
-                    intent.putExtra("ALARMA_DESCRIPTION_STRING","${description.value}")
+                    intent.putExtra("ALARMA_DESCRIPTION_STRING","${vm.description.value}")
                     val pending=
                         PendingIntent.getBroadcast(context,shuff,intent, PendingIntent.FLAG_IMMUTABLE)
 
                     Log.e("time final","compare ${System.currentTimeMillis()}" +
-                            " mytime: ${calendar.timeInMillis} " +
-                            "hour: ${calendar.get(Calendar.HOUR_OF_DAY)} " +
-                            "minute: ${calendar.get(Calendar.MINUTE)} " +
-                            "year: ${calendar.get(Calendar.YEAR)} " +
-                            "month: ${calendar.get(Calendar.MONTH)+1} " +
-                            "day: ${calendar.get(Calendar.DAY_OF_MONTH)}")
+                            " mytime: ${vm.calendar.timeInMillis} " +
+                            "hour: ${vm.calendar.get(Calendar.HOUR_OF_DAY)} " +
+                            "minute: ${vm.calendar.get(Calendar.MINUTE)} " +
+                            "year: ${vm.calendar.get(Calendar.YEAR)} " +
+                            "month: ${vm.calendar.get(Calendar.MONTH)+1} " +
+                            "day: ${vm.calendar.get(Calendar.DAY_OF_MONTH)}")
 
-                    alarmMgr?.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,calendar.timeInMillis,pending)
-                    msg.value="Recordatorio activado"
-                    icon.value=Icons.Filled.Done
-                    showPopup.value=true
+                    alarmMgr?.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,vm.calendar.timeInMillis,pending)
+                    vm.msg.value="Recordatorio activado"
+                    vm.icon.value=Icons.Filled.Done
+                    vm.showPopup.value=true
                     vm.resetTask()
                 }
 
             },
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color.Blue)
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = Color(0XFF3867d6))
         ) {
-            Text(text = "Guardar", color = Color.White, style = NoteTheme.typography.subtitle)
+            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                Text(text = "Guardar",
+                    color = Color.White,
+                    style = NoteTheme.typography.subtitle)
+                Icon(imageVector = Icons.Filled.Save,
+                    contentDescription ="gdi", tint = Color(0XFF25CCF7) )
+
+            }
+        }
+    }
+
+    if (vm.gotoList.value){
+        vm.gotoList.value=false
+        navController.navigate(Screen.lis.route){
+            popUpTo(Screen.lis.route){
+                inclusive=true
+            }
         }
     }
 }
@@ -182,7 +161,7 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
 
 
 @Composable
-fun RowOfThis(value: MutableState<String>, label: String, single: Boolean) {
+fun RowOfThis(value: MutableState<String>, label: String, single: Boolean,icon:ImageVector) {
 
     val focusManager = LocalFocusManager.current
     Row(
@@ -190,24 +169,28 @@ fun RowOfThis(value: MutableState<String>, label: String, single: Boolean) {
             .fillMaxWidth()
             .padding(10.dp)
     ) {
-        TextField(
+        OutlinedTextField(
             modifier = Modifier
-                .fillMaxWidth()
-                .border(BorderStroke(width = 1.dp, color = Color.Black)),
+                .fillMaxWidth(),
             singleLine = single,
-            maxLines = 3,
+            maxLines = 1,
             textStyle = NoteTheme.typography.body,
             value = value.value, onValueChange = {
                 value.value = it
             }, label = {
                 Text(
                     text = label, textAlign = TextAlign.Start,
-                    color = Color.DarkGray,
+                    color = Color(0XFF2c2c54),
                     style = NoteTheme.typography.subtitle
                 )
-            },
+            }, trailingIcon = {
+                Icon(imageVector = icon, contentDescription = "itil",
+                    tint = Color(0XFF2c2c54))},
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            colors = TextFieldDefaults.textFieldColors(backgroundColor = Color.White),
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color.White,
+                focusedLabelColor = Color.Gray,
+            focusedIndicatorColor = Color.Gray),
             keyboardActions = KeyboardActions(onNext =
             { focusManager.moveFocus((FocusDirection.Next)) })
         )
@@ -229,21 +212,37 @@ fun DatePick(context: Context, year: MutableState<Int>,month: MutableState<Int>,
     mDatePickerDialog.datePicker.minDate=System.currentTimeMillis() - 1000
 
     Log.d("datepicker","${day.value}/${month.value}/${year.value}")
-    Button(modifier = Modifier
-        .padding(7.dp)
-        .fillMaxWidth(0.5f), onClick = {
-        mDatePickerDialog.show()
-    }, colors = ButtonDefaults.buttonColors(backgroundColor = Color(0XFF227093))) {
-        Text(text = "Seleccionar fecha",
-            color = Color.White)
+    Column(modifier = Modifier.fillMaxWidth(),
+    horizontalAlignment = Alignment.CenterHorizontally) {
+        Button(modifier = Modifier
+            .padding(7.dp), onClick = {
+            mDatePickerDialog.show()
+        }, colors = ButtonDefaults.buttonColors(backgroundColor = Color(0XFF2c2c54))) {
+            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                Icon(imageVector = Icons.Filled.DateRange,
+                    contentDescription ="wdi", tint = Color(0XFF3867d6) )
+                Text(text = "Seleccionar fecha",
+                    color = Color.White,
+                    style = NoteTheme.typography.subtitle)
+            }
+        }
+        Text(modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+            text = "${day.value}/${month.value}/${year.value}",
+            fontSize = 32.sp, color = Color.Gray,
+            style = NoteTheme.typography.subtitle)
     }
-    Text(text = "${day.value}/${month.value}/${year.value}", fontSize = 22.sp, color = Color(0XFF227093))
+
 }
 
 
 
 @Composable
-fun TimePick(context: Context,hours:MutableState<Int>,minutes:MutableState<Int>) {
+fun TimePick(
+    context: Context,
+    hours: MutableState<Int>,
+    minutes: MutableState<Int>
+) {
 
     val mTimePickerDialog = TimePickerDialog(
         context,
@@ -254,13 +253,32 @@ fun TimePick(context: Context,hours:MutableState<Int>,minutes:MutableState<Int>)
     )
 
     Log.d("tmepicker","hour selected :${hours.value}: munute selected: ${minutes.value}")
-    Button(modifier = Modifier
-        .padding(7.dp)
-        .fillMaxWidth(0.5f), onClick = {
-        mTimePickerDialog.show()
-    }, colors = ButtonDefaults.buttonColors(backgroundColor = Color(0XFF2c2c54))) {
-        Text(text = "Seleccionar hora",
-            color = Color.White)
+
+    Column(modifier = Modifier.fillMaxWidth(),
+    horizontalAlignment = Alignment.CenterHorizontally) {
+        Button(modifier = Modifier
+            .padding(7.dp), onClick = {
+            mTimePickerDialog.show()
+        }, colors = ButtonDefaults.buttonColors(backgroundColor = Color(0XFF2c2c54))) {
+            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                Icon(imageVector = Icons.Filled.Timer, contentDescription ="hhfdi",
+                    tint = Color(0XFF3867d6) )
+                Text(text = "Seleccionar hora",
+                    color = Color.White,
+                    style = NoteTheme.typography.subtitle)
+            }
+        }
+        Text(modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,text = "${hours.value}:${minutes.value}",
+            fontSize = 32.sp,color= Color.Gray,
+            style = NoteTheme.typography.subtitle)
     }
-    Text(text = "${hours.value}:${minutes.value}", fontSize = 22.sp, color = Color(0XFF2c2c54))
+}
+
+@RequiresApi(Build.VERSION_CODES.M)
+@Composable
+@Preview
+fun PreviewAddPage(){
+    val nav:NavHostController= rememberNavController()
+    AddPage(navController = nav)
 }

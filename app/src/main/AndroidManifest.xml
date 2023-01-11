@@ -29,7 +29,17 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
-        <receiver android:name="com.mobile.notepadreminder.AlarmReceiver" android:enabled="true"  />
+        <receiver
+            android:name="com.mobile.notepadreminder.AlarmReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="alarma"></action>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"></action>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
