@@ -9,7 +9,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Card
 import androidx.compose.material.Checkbox
 import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -41,10 +45,16 @@ fun DeHoyPage(navController: NavController, vm: TaskViewModel = viewModel()) {
         LaunchedEffect(key1 = "completedlaunch") {
             vm.loaddehoy(context = context, getDateToday())
         }
-        Text(
-            text = "Total de tareas de hoy: ${vm.list.value.size}",
-            style = NoteTheme.typography.h1
-        )
+        Row (modifier = Modifier.fillMaxWidth()){
+            IconButton(modifier = Modifier.weight(0.2f),onClick = { navController.popBackStack() }) {
+                Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "c1")
+            }
+            Text(modifier = Modifier.weight(0.8f),
+                text = "Total de tareas de hoy: ${vm.list.value.size}",
+                style = NoteTheme.typography.h1
+            )
+        }
+
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -68,8 +78,6 @@ fun CardDeHoy(task: Task, vm: TaskViewModel, context: Context) {
             .fillMaxWidth()
             .height(80.dp)
     ) {
-
-        Log.e("CardDeHoy", "CardDeHoy")
 
         Column() {
             Row(verticalAlignment = Alignment.CenterVertically) {

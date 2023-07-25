@@ -44,12 +44,18 @@ fun TotalPage(navController: NavController, vm: TaskViewModel = viewModel()) {
     ) {
         val context = LocalContext.current
         LaunchedEffect(key1 = "totallaunch") {
-            vm.loadTask(context = context)
+            vm.loadTask(context = context,0)
         }
-        Text(
-            text = "Total de tareas: ${vm.list.value.size}",
-            style = NoteTheme.typography.h1
-        )
+        Row(modifier = Modifier.fillMaxWidth()) {
+            IconButton(modifier = Modifier.weight(0.2f),onClick = { navController.popBackStack() }) {
+                Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "c1")
+            }
+            Text(modifier = Modifier.weight(0.8f),
+                text = "Total de tareas: ${vm.list.value.size}",
+                style = NoteTheme.typography.h1
+            )
+        }
+
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -82,7 +88,6 @@ fun CardTotal(task: Task, vm: TaskViewModel, context: Context) {
         val state = remember {
             mutableStateOf(task.iscompleted==1)
         }
-        Log.e("CardComplete", "CardComplete")
 
         Column() {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -134,7 +139,7 @@ fun CardTotal(task: Task, vm: TaskViewModel, context: Context) {
                     val pending=
                         PendingIntent.getBroadcast(context,task.shuff,intent, PendingIntent.FLAG_IMMUTABLE)
                     alarmMgr.cancel(pending)
-                    vm.loadTask(context)
+                    vm.loadTask(context,0)
                     showPopup.value=true
                     msg.value="Recordatorio desactivado"
                 }) {

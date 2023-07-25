@@ -1,7 +1,9 @@
 package com.mobile.notepadreminder.data
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+
 
 @Entity(tableName = "Task")
 data class Task(

@@ -1,6 +1,7 @@
 package com.mobile.notepadreminder.pages
 
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.*
@@ -35,6 +36,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.UUID
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun MainPage(navController: NavController, vm: TaskViewModel = viewModel()) {
 
@@ -45,7 +47,7 @@ fun MainPage(navController: NavController, vm: TaskViewModel = viewModel()) {
         vm.conteoCompletas(context)
         vm.conteoEnCurso(context)
         vm.conteodeHoy(context, getDateToday())
-        vm.loadTask(context = context)
+        vm.loadTask(context = context,0)
 
     }
 
@@ -66,7 +68,12 @@ fun MainPage(navController: NavController, vm: TaskViewModel = viewModel()) {
 
             FloatingActionButton(
                 onClick = {
-                    navController.navigate(Screen.add.route)
+                    val entero:Int=0;
+                    navController.navigate("add/$entero"){
+                        popUpTo("add/$entero"){
+                            inclusive=true
+                        }
+                    }
                 },
                 backgroundColor = Color.Blue,
                 contentColor = Color.Blue,
@@ -141,7 +148,12 @@ fun MainPage(navController: NavController, vm: TaskViewModel = viewModel()) {
                         style = NoteTheme.typography.body
                     )
                     Button(onClick = {
-                        navController.navigate(Screen.add.route)
+                        val entero:Int=0;
+                        navController.navigate("add/$entero"){
+                            popUpTo("add/$entero"){
+                                inclusive=true
+                            }
+                        }
                     }, colors = ButtonDefaults.buttonColors(backgroundColor = Color.Blue)) {
                         Text(
                             text = "Agregar Tarea",

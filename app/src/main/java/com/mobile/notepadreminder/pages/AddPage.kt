@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -34,6 +35,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.mobile.notepadreminder.AlarmReceiver
+import com.mobile.notepadreminder.data.Task
 import com.mobile.notepadreminder.navigation.Screen
 import com.mobile.notepadreminder.ui.theme.NoteTheme
 import com.mobile.notepadreminder.viewmodels.TaskViewModel
@@ -42,9 +44,13 @@ import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.M)
 @Composable
-fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
+fun AddPage(navController: NavController,param:Int?, vm: TaskViewModel = viewModel()) {
     val scope= rememberCoroutineScope()
     val context = LocalContext.current
+
+    LaunchedEffect(key1 ="uniqueaddpage"){
+        vm.loadTask(context, param ?: 0)
+    }
 
     if (vm.showPopup.value){
 
@@ -59,26 +65,37 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
             .padding(top = 30.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Agregar Tarea",
-            style = NoteTheme.typography.h1,
-            fontSize = 34.sp, color = Color(0XFF3867d6)
-        )
+        Row(modifier= Modifier.fillMaxWidth()) {
+            IconButton(modifier = Modifier.weight(0.2f),onClick = { navController.popBackStack() }) {
+                Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "c1")
+            }
+            Text(modifier = Modifier.weight(0.8f),
+                text = "Agregar Tarea",
+                style = NoteTheme.typography.h1,
+                textAlign = TextAlign.Start,
+                fontSize = 34.sp, color = Color(0XFF3867d6)
+            )
+        }
 
-        Divider(modifier=Modifier
-            .padding( start = 7.dp, end = 7.dp).height(1.dp))
+
+        Divider(modifier= Modifier
+            .padding(start = 7.dp, end = 7.dp)
+            .height(1.dp))
 
         RowOfThis(vm.title, "Título", true,Icons.Filled.Title)
         RowOfThis(vm.description, "Descripción", false,Icons.Filled.Description)
-        Row(modifier = Modifier.padding(top=24.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier
+            .padding(top = 24.dp)
+            .fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             DatePick(context = context, year = vm.year, month = vm.month, day = vm.day)
         }
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             TimePick(context = context, hours =vm.hour, minutes = vm.minutes)
         }
 
-        Button(modifier=Modifier
-            .padding(top=40.dp, start = 8.dp, end = 8.dp).fillMaxWidth(),
+        Button(modifier= Modifier
+            .padding(top = 40.dp, start = 8.dp, end = 8.dp)
+            .fillMaxWidth(),
             onClick = {
                 if (vm.title.value.isNullOrBlank() || vm.description.value.isNullOrBlank()
                 ) {
@@ -88,6 +105,20 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
                     return@Button
                 }
                 scope.launch {
+
+                    if (param != null) {
+                        vm.deleteTask(context,param)
+                        val alarmMgr= context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+                        val intent= Intent(context, AlarmReceiver::class.java)
+                        intent.action="alarma"
+                        intent.putExtra("ALARMA_ID_STRING","${vm.task.value.shuff}")
+                        intent.putExtra("ALARMA_DESCRIPTION_STRING","${vm.task.value.description}")
+                        val pending=
+                            PendingIntent.getBroadcast(context,vm.task.value.shuff,intent, PendingIntent.FLAG_IMMUTABLE)
+                        alarmMgr.cancel(pending)
+                    }
+
 
                     vm.calendar.apply {
                         set(Calendar.YEAR,vm.year.value)
@@ -106,8 +137,6 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
                     vm.task.value.shuff= shuff
 
                     vm.createTask(context, vm.task.value)
-                    Log.e("tmepickerreceived","date and time  :${vm.year.value}/${vm.month.value}/${vm.day.value} : ${vm.hour.value}:${vm.minutes.value}")
-
 
                     val alarmMgr= context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -118,16 +147,9 @@ fun AddPage(navController: NavController, vm: TaskViewModel = viewModel()) {
                     val pending=
                         PendingIntent.getBroadcast(context,shuff,intent, PendingIntent.FLAG_IMMUTABLE)
 
-                    Log.e("time final","compare ${System.currentTimeMillis()}" +
-                            " mytime: ${vm.calendar.timeInMillis} " +
-                            "hour: ${vm.calendar.get(Calendar.HOUR_OF_DAY)} " +
-                            "minute: ${vm.calendar.get(Calendar.MINUTE)} " +
-                            "year: ${vm.calendar.get(Calendar.YEAR)} " +
-                            "month: ${vm.calendar.get(Calendar.MONTH)+1} " +
-                            "day: ${vm.calendar.get(Calendar.DAY_OF_MONTH)}")
 
                     alarmMgr?.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,vm.calendar.timeInMillis,pending)
-                    vm.msg.value="Recordatorio activado"
+                    vm.msg.value= if(param!=null&&param>0) "Recordatorio reconfigurado" else "Recordatorio activado"
                     vm.icon.value=Icons.Filled.Done
                     vm.showPopup.value=true
                     vm.resetTask()
@@ -204,14 +226,13 @@ fun DatePick(context: Context, year: MutableState<Int>,month: MutableState<Int>,
     val mDatePickerDialog = DatePickerDialog(
         context,{d,mYear,mMonth,mDay ->
             year.value=mYear
-            month.value=mMonth+1
+            month.value=mMonth
             day.value=mDay
         }, year.value, month.value, day.value
     )
 
     mDatePickerDialog.datePicker.minDate=System.currentTimeMillis() - 1000
 
-    Log.d("datepicker","${day.value}/${month.value}/${year.value}")
     Column(modifier = Modifier.fillMaxWidth(),
     horizontalAlignment = Alignment.CenterHorizontally) {
         Button(modifier = Modifier
@@ -252,8 +273,6 @@ fun TimePick(
         }, hours.value, minutes.value, false
     )
 
-    Log.d("tmepicker","hour selected :${hours.value}: munute selected: ${minutes.value}")
-
     Column(modifier = Modifier.fillMaxWidth(),
     horizontalAlignment = Alignment.CenterHorizontally) {
         Button(modifier = Modifier
@@ -273,12 +292,4 @@ fun TimePick(
             fontSize = 32.sp,color= Color.Gray,
             style = NoteTheme.typography.subtitle)
     }
-}
-
-@RequiresApi(Build.VERSION_CODES.M)
-@Composable
-@Preview
-fun PreviewAddPage(){
-    val nav:NavHostController= rememberNavController()
-    AddPage(navController = nav)
 }

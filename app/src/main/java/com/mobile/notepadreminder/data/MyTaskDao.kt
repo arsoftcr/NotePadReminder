@@ -15,6 +15,9 @@ interface MyTaskDao {
     @Query("select id,title,description,date,dateCreated,time,iscompleted,shuff from Task")
     suspend fun select():List<Task>
 
+    @Query("select id,title,description,date,dateCreated,time,iscompleted,shuff from Task where shuff=:pid and iscompleted=0 limit 1")
+    suspend fun selectOne(pid:Int):Task
+
     @Query("select id,title,description,date,dateCreated,time,iscompleted,shuff from Task where iscompleted=1")
     suspend fun completadas():List<Task>
 

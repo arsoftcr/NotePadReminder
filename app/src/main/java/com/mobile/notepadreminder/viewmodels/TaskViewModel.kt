@@ -14,26 +14,28 @@ import com.mobile.notepadreminder.data.TaskDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.log
 
 class TaskViewModel(): ViewModel() {
 
-    val calendar= Calendar.getInstance().apply {
+    var calendar= Calendar.getInstance().apply {
         timeInMillis=System.currentTimeMillis()
     }
     val title = mutableStateOf("")
 
     val description =  mutableStateOf("")
 
-    val year= mutableStateOf(calendar.get(Calendar.YEAR))
+    var year= mutableStateOf(calendar.get(Calendar.YEAR))
 
-    val month= mutableStateOf(calendar.get(Calendar.MONTH))
+    var month= mutableStateOf(calendar.get(Calendar.MONTH)+1)
 
-    val day= mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH))
+    var day= mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH))
 
-    val hour=  mutableStateOf(calendar.get(Calendar.HOUR_OF_DAY))
+    var hour=  mutableStateOf(calendar.get(Calendar.HOUR_OF_DAY))
 
-    val minutes= mutableStateOf(calendar.get(Calendar.MINUTE))
+    var minutes= mutableStateOf(calendar.get(Calendar.MINUTE))
 
     val showPopup= mutableStateOf(false)
 
@@ -60,7 +62,7 @@ class TaskViewModel(): ViewModel() {
     private  fun clean(){
         list.value= mutableListOf()
     }
-     fun loadTask(context: Context){
+     fun loadTask(context: Context,taskId:Int){
         viewModelScope.launch {
             try{
                 clean()
@@ -68,12 +70,34 @@ class TaskViewModel(): ViewModel() {
                     TaskDatabase.getDatabase(context).taskDao().select()
                 }
                 total.value=list.value.count()
+                if (taskId>0&&total.value>0){
+                    val received= list.value.find { it.id==taskId }
+                    if (received!=null){
+                        task.value=received
+                        title.value=received.title
+                        description.value=received.description
+                        val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                        val date = format.parse(received.date)
+                        calendar= Calendar.getInstance().apply {
+                            timeInMillis=received.time
+                        }
+                        year= mutableStateOf(calendar.get(Calendar.YEAR))
+
+                        month= mutableStateOf(calendar.get(Calendar.MONTH)+1)
+
+                        day= mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH))
+
+                        hour=  mutableStateOf(calendar.get(Calendar.HOUR_OF_DAY))
+
+                        minutes= mutableStateOf(calendar.get(Calendar.MINUTE))
+
+                    }
+                }
                 if (list.value.isNotEmpty()){
                     goto.value=true
                 }
-                Log.d("loadTask()","tasks cargados correctamente ${list.value.count()}")
             }catch (err:java.lang.Exception){
-                Log.d("ERROR:loadTask",err.toString())
+                Log.e("ERROR:loadTask",err.toString())
             }
         }
     }
@@ -85,9 +109,8 @@ class TaskViewModel(): ViewModel() {
                 list.value= withContext(Dispatchers.IO){
                     TaskDatabase.getDatabase(context).taskDao().encurso()
                 }
-                Log.d("loadencurso()","loadencurso ${list.value.count()}")
             }catch (err:java.lang.Exception){
-                Log.d("ERROR:loadencurso",err.toString())
+                Log.e("ERROR:loadencurso",err.toString())
             }
         }
     }
@@ -99,9 +122,8 @@ class TaskViewModel(): ViewModel() {
                 list.value= withContext(Dispatchers.IO){
                     TaskDatabase.getDatabase(context).taskDao().completadas()
                 }
-                Log.d("loadcomplete()","loadcomplete ${list.value.count()}")
             }catch (err:java.lang.Exception){
-                Log.d("ERROR:loadcomplete",err.toString())
+                Log.e("ERROR:loadcomplete",err.toString())
             }
         }
     }
@@ -112,9 +134,8 @@ class TaskViewModel(): ViewModel() {
                 completas.value= withContext(Dispatchers.IO){
                     TaskDatabase.getDatabase(context).taskDao().conteoCompletas()
                 }
-                Log.d("conteoCompletas()","conteoCompletass ${completas.value}")
             }catch (err:java.lang.Exception){
-                Log.d("ERROR:conteoCompletas",err.toString())
+                Log.e("ERROR:conteoCompletas",err.toString())
             }
         }
     }
@@ -125,9 +146,8 @@ class TaskViewModel(): ViewModel() {
                 enCursoCount.value= withContext(Dispatchers.IO){
                     TaskDatabase.getDatabase(context).taskDao().conteoEnCurso()
                 }
-                Log.d("conteoCompletas()","conteoEnCurso ${enCursoCount.value}")
             }catch (err:java.lang.Exception){
-                Log.d("ERROR:conteoCompletas",err.toString())
+                Log.e("ERROR:conteoCompletas",err.toString())
             }
         }
     }
@@ -138,9 +158,8 @@ class TaskViewModel(): ViewModel() {
                 dehoy.value= withContext(Dispatchers.IO){
                     TaskDatabase.getDatabase(context).taskDao().conteoDeHoy(date)
                 }
-                Log.d("conteodeHoy()","conteodeHoy ${dehoy.value}")
             }catch (err:java.lang.Exception){
-                Log.d("ERROR:conteodeHoy",err.toString())
+                Log.e("ERROR:conteodeHoy",err.toString())
             }
         }
     }
@@ -152,9 +171,8 @@ class TaskViewModel(): ViewModel() {
                 list.value= withContext(Dispatchers.IO){
                     TaskDatabase.getDatabase(context).taskDao().dehoy(date)
                 }
-                Log.d("loaddehoy()","tasks cargados correctamente ${list.value.count()}")
             }catch (err:java.lang.Exception){
-                Log.d("ERROR:loaddehoy",err.toString())
+                Log.e("ERROR:loaddehoy",err.toString())
             }
         }
     }
@@ -164,9 +182,8 @@ class TaskViewModel(): ViewModel() {
             try{
                 TaskDatabase.getDatabase(context).taskDao().updateTask(id,completed)
 
-                Log.d("updateTask()","updateTask id $id completed : $completed")
             }catch (err:java.lang.Exception){
-                Log.d("ERROR:updateTask",err.toString())
+                Log.e("ERROR:updateTask",err.toString())
             }
         }
     }
@@ -176,9 +193,8 @@ class TaskViewModel(): ViewModel() {
             try{
                 TaskDatabase.getDatabase(context).taskDao().deleteTask(id)
 
-                Log.d("deleteTask()","deleteTask id $id")
             }catch (err:java.lang.Exception){
-                Log.d("ERROR:deleteTask",err.toString())
+                Log.e("ERROR:deleteTask",err.toString())
             }
         }
     }
@@ -189,7 +205,7 @@ class TaskViewModel(): ViewModel() {
             try{
                 TaskDatabase.getDatabase(context).taskDao().insert(task)
             }catch (err:Throwable){
-                Log.d("ERROR:loadPeriods",err.message.toString())
+                Log.e("ERROR:loadPeriods",err.message.toString())
             }
         }
     }

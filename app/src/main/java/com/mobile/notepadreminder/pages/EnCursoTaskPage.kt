@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +24,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.mobile.notepadreminder.data.Task
 import com.mobile.notepadreminder.ui.theme.NoteTheme
+import com.mobile.notepadreminder.ui.theme.Purple500
+import com.mobile.notepadreminder.ui.theme.Purple700
+import com.mobile.notepadreminder.ui.theme.Teal200
+import com.mobile.notepadreminder.ui.theme.shapire
 import com.mobile.notepadreminder.ui.theme.taskText
 import com.mobile.notepadreminder.viewmodels.TaskViewModel
 import kotlinx.coroutines.launch
@@ -38,10 +44,16 @@ fun EnCursoTaskPage(navController: NavController, vm: TaskViewModel = viewModel(
         LaunchedEffect(key1 = "encursolaunch") {
             vm.loadencurso(context = context)
         }
-        Text(
-            text = "Total de tareas en curso: ${vm.list.value.size}",
-            style = NoteTheme.typography.h1
-        )
+        Row(modifier = Modifier.fillMaxWidth()) {
+            IconButton(modifier = Modifier.weight(0.2f),onClick = { navController.popBackStack() }) {
+                Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "c1")
+            }
+            Text(modifier = Modifier.weight(0.8f),
+                text = "Total de tareas en curso: ${vm.list.value.size}",
+                style = NoteTheme.typography.h1
+            )
+        }
+
 
         LazyColumn(modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -53,7 +65,7 @@ fun EnCursoTaskPage(navController: NavController, vm: TaskViewModel = viewModel(
                     if (task.iscompleted==0){
                         CardEnCurso(state = taskState,
                             description = task.description,
-                            date = task.date, idT = task.id,vm,context)
+                            date = task.date, idT = task.id,vm,context,navController)
                     }
                 })
             })
@@ -64,24 +76,22 @@ fun EnCursoTaskPage(navController: NavController, vm: TaskViewModel = viewModel(
 fun CardEnCurso(state: MutableState<Boolean>,
                 description: String,
                 date:String,
-                idT:Int,vm: TaskViewModel,context: Context) {
+                idT:Int,vm: TaskViewModel,context: Context,navController: NavController) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(80.dp)
     ) {
-        Log.e("CardComplete", "CardComplete ${state.value} to ")
         if (!state.value){
             Column() {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+              Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
                         checked = state.value,
                         onCheckedChange = {
-                            Log.e("it", "it ${state.value} to ${it}")
+
                             state.value=!state.value
 
                             if (!state.value){
-                                Log.e("conchanged","completed")
                                 return@Checkbox
                             }
                             vm.updateTask(context =context,id=idT, completed = 1)
@@ -102,7 +112,9 @@ fun CardEnCurso(state: MutableState<Boolean>,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        modifier = Modifier.padding(start = 24.dp, end = 24.dp),
+                        modifier = Modifier
+                            .padding(start = 24.dp, end = 24.dp)
+                            .weight(0.6f),
                         text = date,
                         maxLines = 1,
                         color = Color.Gray,
@@ -110,7 +122,21 @@ fun CardEnCurso(state: MutableState<Boolean>,
                         style = NoteTheme.typography.h1,
                         overflow = TextOverflow.Ellipsis
                     )
+
+                   Button(onClick = {
+                       navController.navigate("add/$idT"){
+                           popUpTo("add/$idT"){
+                               inclusive=true
+                           }
+                       }
+                   },modifier = Modifier
+                       .weight(0.4f), colors = ButtonDefaults.buttonColors(backgroundColor = shapire)
+                   ) {
+                        Text(text = "Modificar", color = Color.White)
+                    }
                 }
+
+
             }
         }
 

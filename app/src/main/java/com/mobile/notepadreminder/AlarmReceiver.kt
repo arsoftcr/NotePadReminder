@@ -1,5 +1,6 @@
 package com.mobile.notepadreminder
 
+import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -11,19 +12,25 @@ import android.os.AsyncTask
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.mobile.notepadreminder.data.Task
 import com.mobile.notepadreminder.data.TaskDatabase
 import com.mobile.notepadreminder.viewmodels.TaskViewModel
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
 class AlarmReceiver : BroadcastReceiver() {
 
 
+    @OptIn(DelicateCoroutinesApi::class)
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.d("alarm", "************************received ${intent?.action}")
 
         if (intent?.action == "alarma") {
             val number = intent?.getStringExtra("ALARMA_ID_STRING")
@@ -32,31 +39,58 @@ class AlarmReceiver : BroadcastReceiver() {
             mp.start()
             if (context != null) {
                 if (number != null) {
-                    val pendingResult: PendingResult = goAsync()
-                    val asyncTask = Task(pendingResult, context, number.toInt())
-                    asyncTask.execute()
-                    showNotification(
-                        context,
-                        number.toInt(),
-                        "Recordatorio: ${number.toInt()}",
-                        "$description"
-                    )
+                    //val pendingResult: PendingResult = goAsync()
+                    //val asyncTask = Task(pendingResult, context, number.toInt())
+                    //asyncTask.execute()
+//                    showNotification(
+//                        context,
+//                        number.toInt(),
+//                        "Recordatorio: ${number.toInt()}",
+//                        "$description"
+//                    )
+                    GlobalScope.launch (Dispatchers.Main){
+                        withContext(Dispatchers.IO){
+                            val taskReceived=TaskDatabase.getDatabase(context).taskDao().selectOne(number.toInt())
+                            TaskDatabase.getDatabase(context).taskDao().updateTask(taskReceived.id,1)
+
+                            showNotification(
+                                context,
+                                number.toInt(),
+                                "Recordatorio: ${taskReceived.title}",
+                                "$description"
+                            )
+                        }
+                    }
+
                 }
             }
         }else{
-            val mp = MediaPlayer.create(context, R.raw.alarma)
-            mp.start()
 
             if (context != null) {
-                val pendingResult: PendingResult = goAsync()
-                val number = (1..99999).shuffled().first()
-                val asyncTask = Task(pendingResult, context, number)
-                asyncTask.execute()
-                showNotification(context, number, "Recordatorio: $number", "boot alarm")
+                GlobalScope.launch(Dispatchers.Main) {
+                    withContext(Dispatchers.IO){
+                        val tasks=TaskDatabase.getDatabase(context).taskDao().select()
+                        if (tasks.isNotEmpty()){
+                            for (alarm in tasks) {
+                                if (alarm.iscompleted==0){
+                                    val intent= Intent(context,AlarmReceiver::class.java)
+                                    intent.action="alarma"
+                                    intent.putExtra("ALARMA_ID_STRING","${alarm.shuff}")
+                                    intent.putExtra("ALARMA_DESCRIPTION_STRING", alarm.description)
+                                    val pending=
+                                        PendingIntent.getBroadcast(context,alarm.shuff,intent, PendingIntent.FLAG_IMMUTABLE)
 
+                                    val alarmMgr= context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                                    alarmMgr?.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,alarm.time,pending)
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
+
 
     private class Task(
         private val pendingResult: PendingResult,
@@ -65,17 +99,13 @@ class AlarmReceiver : BroadcastReceiver() {
     ) : AsyncTask<String, Int, String>() {
 
         override fun doInBackground(vararg params: String?): String {
-            if (context != null) {
-                TaskDatabase.getDatabase(context).taskDao().deleteAfterAlarm(number)
-            }
+            TaskDatabase.getDatabase(context).taskDao().deleteAfterAlarm(number)
             return toString().also { log ->
                 Log.d("BACKGROUND", log)
             }
         }
-
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
-            // Must call finish() so the BroadcastReceiver can be recycled.
             pendingResult.finish()
         }
     }

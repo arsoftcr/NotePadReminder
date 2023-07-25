@@ -12,7 +12,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Card
 import androidx.compose.material.Checkbox
 import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,10 +47,16 @@ fun CompleteTaskPage(navController: NavController, vm: TaskViewModel = viewModel
         LaunchedEffect(key1 = "completedlaunch") {
             vm.loadcomplete(context = context)
         }
-        Text(
-            text = "Total de tareas completadas: ${vm.list.value.size}",
-            style = NoteTheme.typography.h1
-        )
+        Row(modifier = Modifier.fillMaxWidth()) {
+            IconButton(modifier = Modifier.weight(0.2f),onClick = { navController.popBackStack() }) {
+                Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "c1")
+            }
+            Text(modifier = Modifier.weight(0.8f),
+                text = "Total de tareas completadas: ${vm.list.value.size}",
+                style = NoteTheme.typography.h1
+            )
+        }
+
 
         LazyColumn(modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -75,18 +85,16 @@ fun CardComplete(state: MutableState<Boolean>,
             .fillMaxWidth()
             .height(80.dp)
     ) {
-        Log.e("CardComplete", "CardComplete ${state.value} to ")
+
         if (state.value){
             Column() {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
                         checked = state.value,
                         onCheckedChange = {
-                            Log.e("it", "it ${state.value} to ${it}")
                             state.value=!state.value
 
                             if (state.value){
-                                Log.e("conchanged","completed")
                                 return@Checkbox
                             }
                             vm.updateTask(context =context,id=idT, completed = 0)

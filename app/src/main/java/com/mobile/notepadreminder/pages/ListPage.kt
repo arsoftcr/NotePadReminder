@@ -1,5 +1,7 @@
 package com.mobile.notepadreminder.pages
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +13,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardReturn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -33,25 +37,44 @@ import com.mobile.notepadreminder.ui.theme.NoteTheme
 import com.mobile.notepadreminder.viewmodels.TaskViewModel
 import java.util.*
 
+@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun ListPage(navController: NavController,vm:TaskViewModel= viewModel()){
-
     val context= LocalContext.current
     LaunchedEffect(key1 = "lispage" ){
+        vm.loadencurso(context)
+        vm.loadcomplete(context = context)
+        vm.loaddehoy(context = context,getDateToday())
+        vm.loadTask(context = context,0)
         vm.conteoCompletas(context)
         vm.conteoEnCurso(context)
         vm.conteodeHoy(context, getDateToday())
-        vm.loadTask(context = context)
     }
     Scaffold(
         topBar = {
-
+                 IconButton(modifier = Modifier.fillMaxWidth(),onClick = {
+                     (context as Activity).finish()
+                 }) {
+                     Row (modifier = Modifier.fillMaxWidth()){
+                         Text(modifier = Modifier.weight(0.9f),
+                             color = Color.DarkGray,
+                             text = "Salir", textAlign = TextAlign.End)
+                         Icon(modifier = Modifier.weight(0.1f),
+                             tint = Color.Red,
+                             imageVector = Icons.Filled.Close, contentDescription = "finisk")
+                     }
+                 }
         },
         floatingActionButton = {
 
             FloatingActionButton(
                 onClick = {
-                    navController.navigate(Screen.add.route)
+                    val entero:Int=0;
+                    navController.navigate("add/$entero"){
+                        popUpTo("add/$entero"){
+                            inclusive=true
+                        }
+                    }
                 },
                 backgroundColor = Color.Blue,
                 contentColor = Color.Blue,
@@ -71,29 +94,42 @@ fun ListPage(navController: NavController,vm:TaskViewModel= viewModel()){
             .verticalScroll(rememberScrollState())
             .padding(10.dp),
             verticalArrangement = Arrangement.Center) {
+
             Text(modifier = Modifier.padding(start = 10.dp),
                 text = "Resumen",
                 color= Color.Black,
                 textAlign = TextAlign.Center, style = NoteTheme.typography.bigTitle)
             CardTotals(title = "Tareas pendientes", body ="Total de tareas pendientes" , number ="${vm.enCursoCount.value}",
                 backColor = Color(0xFF2c2c54), click = {
-                    Log.d("cardtools","curso")
-                    navController.navigate(Screen.encurso.route)
+                    navController.navigate(Screen.encurso.route){
+                        popUpTo(Screen.encurso.route){
+                            inclusive=true
+                        }
+                    }
                 })
             CardTotals(title = "Tareas completadas", body ="Total de tareas completadas" , number ="${vm.completas.value}",
                 backColor = Color(0xFFff5252), click = {
-                    Log.d("cardtools","completas")
-                    navController.navigate(Screen.completed.route)
+                    navController.navigate(Screen.completed.route){
+                        popUpTo(Screen.completed.route){
+                            inclusive=true
+                        }
+                    }
                 } )
             CardTotals(title = "Tareas", body ="Total de tareas" , number ="${vm.total.value}",
                 backColor = Color(0xFF34ace0), click = {
-                    Log.d("cardtools","total")
-                    navController.navigate(Screen.total.route)
+                    navController.navigate(Screen.total.route){
+                        popUpTo(Screen.total.route){
+                            inclusive=true
+                        }
+                    }
                 } )
             CardTotals(title = "Tareas de hoy", body ="Total de tareas de hoy" , number ="${vm.dehoy.value}",
                 backColor = Color(0xFFccae62) , click = {
-                    Log.d("cardtools","hoy")
-                    navController.navigate(Screen.deHoy.route)
+                    navController.navigate(Screen.deHoy.route){
+                        popUpTo(Screen.deHoy.route){
+                            inclusive=true
+                        }
+                    }
                 })
         }
     }
