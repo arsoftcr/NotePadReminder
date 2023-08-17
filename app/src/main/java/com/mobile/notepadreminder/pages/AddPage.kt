@@ -1,6 +1,7 @@
 package com.mobile.notepadreminder.pages
 
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.DatePickerDialog
 import android.app.PendingIntent
@@ -42,6 +43,7 @@ import com.mobile.notepadreminder.viewmodels.TaskViewModel
 import kotlinx.coroutines.launch
 import java.util.*
 
+@SuppressLint("ScheduleExactAlarm")
 @RequiresApi(Build.VERSION_CODES.M)
 @Composable
 fun AddPage(navController: NavController,param:Int?, vm: TaskViewModel = viewModel()) {
@@ -120,9 +122,10 @@ fun AddPage(navController: NavController,param:Int?, vm: TaskViewModel = viewMod
                     }
 
 
+
                     vm.calendar.apply {
                         set(Calendar.YEAR,vm.year.value)
-                        set(Calendar.MONTH,(vm.month.value-1))
+                        set(Calendar.MONTH,(vm.month.value))
                         set(Calendar.DAY_OF_MONTH,vm.day.value)
                         set(Calendar.HOUR_OF_DAY,vm.hour.value)
                         set(Calendar.MINUTE,vm.minutes.value)
@@ -131,7 +134,7 @@ fun AddPage(navController: NavController,param:Int?, vm: TaskViewModel = viewMod
                     val shuff=(1..99999).shuffled().first()
                     vm.task.value.title = vm.title.value
                     vm.task.value.description = vm.description.value
-                    vm.task.value.date = "${vm.day.value}/${vm.month.value}/${vm.year.value}"
+                    vm.task.value.date = "${vm.day.value}/${vm.month.value+1}/${vm.year.value}"
                     vm.task.value.time = vm.calendar.timeInMillis
                     vm.task.value.dateCreated= getDateToday()
                     vm.task.value.shuff= shuff
@@ -149,7 +152,8 @@ fun AddPage(navController: NavController,param:Int?, vm: TaskViewModel = viewMod
 
 
                     alarmMgr?.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,vm.calendar.timeInMillis,pending)
-                    vm.msg.value= if(param!=null&&param>0) "Recordatorio reconfigurado" else "Recordatorio activado"
+                    vm.msg.value= if(param!=null&&param>0) "Recordatorio reconfigurado"
+                    else "Recordatorio activado"
                     vm.icon.value=Icons.Filled.Done
                     vm.showPopup.value=true
                     vm.resetTask()
@@ -249,7 +253,7 @@ fun DatePick(context: Context, year: MutableState<Int>,month: MutableState<Int>,
         }
         Text(modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
-            text = "${day.value}/${month.value}/${year.value}",
+            text = "${day.value}/${month.value+1}/${year.value}",
             fontSize = 32.sp, color = Color.Gray,
             style = NoteTheme.typography.subtitle)
     }

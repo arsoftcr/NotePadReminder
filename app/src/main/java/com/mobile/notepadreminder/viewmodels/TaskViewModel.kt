@@ -29,7 +29,7 @@ class TaskViewModel(): ViewModel() {
 
     var year= mutableStateOf(calendar.get(Calendar.YEAR))
 
-    var month= mutableStateOf(calendar.get(Calendar.MONTH)+1)
+    var month= mutableStateOf(calendar.get(Calendar.MONTH))
 
     var day= mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH))
 
@@ -83,7 +83,7 @@ class TaskViewModel(): ViewModel() {
                         }
                         year= mutableStateOf(calendar.get(Calendar.YEAR))
 
-                        month= mutableStateOf(calendar.get(Calendar.MONTH)+1)
+                        month= mutableStateOf(calendar.get(Calendar.MONTH))
 
                         day= mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH))
 
